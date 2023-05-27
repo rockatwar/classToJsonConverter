@@ -15,7 +15,7 @@ public class ClassToJson {
         builder.append("{");
 
             for (Field field : clazz.getDeclaredFields()) {
-                if (field.getName().equals("this$0"))                      // check that field is not a pointer to a parent class
+                if (field.getName().startsWith("this$"))                      // check that field is not a pointer to a parent class
                     continue;
 
                 field.setAccessible(true);
@@ -68,13 +68,17 @@ public class ClassToJson {
     }
 
     private static void getInnerClass (Class<?>[] classes, StringBuilder builder) {
+        boolean firstEntry = true;
 
         for (Class<?> innerClass : classes) {
+            if (!firstEntry) builder.append(", ");
 
             builder.append("\"").append(innerClass.getSimpleName())
                     .append("\"").append(": ");
 
             convert(innerClass.getName(), builder);
+
+            firstEntry = false;
         }
     }
 }
