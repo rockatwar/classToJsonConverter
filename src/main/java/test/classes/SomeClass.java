@@ -12,7 +12,7 @@ public class SomeClass {
     private Map<String, Set<RemouteFile>> keywords;
     private Character simba;
     private ArrayList<Character> charlist;
-
     String[][] strings;
     Integer[] integers;
+
 }

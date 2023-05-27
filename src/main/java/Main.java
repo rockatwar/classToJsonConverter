@@ -1,8 +1,8 @@
-import task.utils.ClassToJson;
+import test.utils.ClassToJson;
 
 public class Main {
     public static void main(String[] args) {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         boolean firstEntry = true;
         String result = null;
 
@@ -13,9 +13,9 @@ public class Main {
 
         for (String arg : args) {
             if (!firstEntry)
-                stringBuilder.append(", ");
+                builder.append(", ");
 
-            result = ClassToJson.convert(arg, stringBuilder);
+            result = ClassToJson.convert(arg, builder);
 
             firstEntry = false;
         }
