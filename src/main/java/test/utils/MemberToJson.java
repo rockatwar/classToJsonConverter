@@ -5,88 +5,65 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 public class MemberToJson {
-    public static void isMap (Field field, StringBuilder builder) {
+    public static void isMap (Field field) {
         ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
 
         Type key = parameterizedType.getActualTypeArguments()[0];
         Type value = parameterizedType.getActualTypeArguments()[1];
 
-        builder.append("[{");
-        builder.append("\"").append(Helper.getShortType((Class<?>) key))
-                .append("\"").append(": ");
+        Builder.wrapKey(Helper.getShortType((Class<?>) key));
 
         if (value instanceof Class) {
 
-            builder.append("[");
-
-            if (Helper.notJDKClass((Class<?>) value)) {
-                ClassToJson.convert(((Class<?>) value).getName(), builder);
-
-            } else {
-
-                builder.append("\"")
-                        .append(Helper.getShortType((Class<?>) value)).append("\"");
-            }
-
-            builder.append(",\"...\"]")
-                    .append("},\"...\"]");
+            processValue((Class<?>) value);
+            Builder.append("},\"...\"]");
 
         }
 
         if (value instanceof ParameterizedType) {
 
             Type actual = ((ParameterizedType) value).getActualTypeArguments()[0];
+            processValue((Class<?>) actual);
 
-            builder.append("[");
-
-            if (Helper.notJDKClass((Class<?>) actual)) {
-                ClassToJson.convert(((Class<?>) actual).getName(), builder);
-
-            } else {
-
-                builder.append("\"")
-                        .append(Helper.getShortType((Class<?>) actual)).append("\"");
-            }
-
-            builder.append(",\"...\"]")
-                    .append("},\"...\"]");
+            Builder.append("},\"...\"]");
 
         }
     }
 
-    public static void isCollection (Field field, StringBuilder builder) {
+    public static void isCollection (Field field) {
         ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
         Type value = parameterizedType.getActualTypeArguments()[0];
 
-        builder.append("[");
-
-        if (Helper.notJDKClass((Class<?>) value)) {
-
-            ClassToJson.convert(((Class<?>) value).getName(), builder);
-
-        } else {
-
-            builder.append("\"")
-                    .append(Helper.getShortType((Class<?>) value)).append("\"");
-        }
-
-        builder.append(",\"...\"]");
+        processValue((Class<?>) value);
 
     }
 
-    public static void isArray (Class<?> type, StringBuilder builder) {
-        Class<?> element = type.getComponentType();
+    public static void isArray (Class<?> type) {
+        Class<?> component = type.getComponentType();
 
-        if (element.isArray()) {
+        if (component.isArray()) {
 
-            builder.append("[[\"")
-                    .append(Helper.getShortType(type))
-                    .append("\",\"...\"],\"...\"]");
+            Builder.wrapMultiArray(Helper.getShortType(type));
+
         } else {
 
-            builder.append("[\"")
-                    .append(Helper.getShortType(type))
-                    .append("\",\"...\"]");
+            Builder.wrapSingleArray(Helper.getShortType(type));
+
         }
+    }
+
+    private static void processValue(Class<?> value) {
+
+        Builder.append("[");
+
+        if (Helper.isNotJDKClass(value)) {
+            ClassToJson.convert(value.getName());
+
+        } else {
+            Builder.wrapValue(Helper.getShortType(value));
+
+        }
+
+        Builder.append(",\"...\"]");
     }
 }

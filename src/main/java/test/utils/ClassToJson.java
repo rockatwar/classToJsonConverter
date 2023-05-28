@@ -5,14 +5,13 @@ import java.util.Collection;
 import java.util.Map;
 
 public class ClassToJson {
-    public static String convert(String classname, StringBuilder builder) {
+    public static String convert(String classname) {
 
         try {
         Class<?> clazz = Class.forName(classname);
         Class<?>[] classes = clazz.getDeclaredClasses();
-        boolean firstEntry = true;
 
-        builder.append("{");
+        Builder.append("{");
 
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.getName().startsWith("this$"))                      // check that field is not a pointer to a parent class
@@ -22,38 +21,34 @@ public class ClassToJson {
                 String name = field.getName();
                 Class<?> type = field.getType();
 
-                if (!firstEntry)                                         // check that is not a first entry into cycle
-                    builder.append(", ");                                // append comma if so
+                Builder.wrapName(name);
 
-                builder.append("\"").append(name)
-                        .append("\"").append(":");
-
-                if (Helper.notJDKClass(type)) {
-                    convert(type.getTypeName(), builder);
+                if (Helper.isNotJDKClass(type)) {
+                    convert(type.getTypeName());
 
                 } else if (Map.class.isAssignableFrom(type)) {
                     Field map = clazz.getDeclaredField(name);
-                    MemberToJson.isMap(map, builder);
+                    MemberToJson.isMap(map);
 
                 } else if (Collection.class.isAssignableFrom(type)) {
                     Field collection = clazz.getDeclaredField(name);
-                    MemberToJson.isCollection(collection, builder);
+                    MemberToJson.isCollection(collection);
 
                 } else if (type.isArray()) {
-                    MemberToJson.isArray(type, builder);
+                    MemberToJson.isArray(type);
 
                 } else {
-                    builder.append("\"")
-                            .append(Helper.getShortType(type))
-                            .append("\"");
-                }
+                    Builder.wrapValue(Helper.getShortType(type));
 
-                firstEntry = false;
+                }
+                Builder.append(",");
             }
 
-            if (classes.length != 0) {                             // internal class processing
-                builder.append(", ");
-                getInnerClass(classes, builder);
+            Builder.deleteComma();
+
+            if (classes.length != 0) {                                   // internal class processing
+                Builder.append(",");
+                getInnerClass(classes);
             }
 
         } catch (ClassNotFoundException e) {
@@ -61,24 +56,21 @@ public class ClassToJson {
         } catch (NoSuchFieldException e) {
             e.getStackTrace();
         }
+        Builder.append("}");
 
-        builder.append("}");
-
-        return builder.toString();
+        return Builder.STRING_BUILDER.toString();
     }
 
-    private static void getInnerClass (Class<?>[] classes, StringBuilder builder) {
-        boolean firstEntry = true;
+    private static void getInnerClass (Class<?>[] classes) {
 
         for (Class<?> innerClass : classes) {
-            if (!firstEntry) builder.append(", ");
 
-            builder.append("\"").append(innerClass.getSimpleName())
-                    .append("\"").append(": ");
+            Builder.wrapName(innerClass.getSimpleName());
 
-            convert(innerClass.getName(), builder);
-
-            firstEntry = false;
+            convert(innerClass.getName());
+            Builder.append(",");
         }
+
+        Builder.deleteComma();
     }
 }
