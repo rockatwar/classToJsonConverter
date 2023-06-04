@@ -11,7 +11,16 @@ public class MemberToJson {
         Type key = parameterizedType.getActualTypeArguments()[0];
         Type value = parameterizedType.getActualTypeArguments()[1];
 
-        Builder.wrapKey(Helper.getShortType((Class<?>) key));
+        if (key instanceof Class) {
+            Builder.wrapKey(((Class<?>) key).getSimpleName());
+
+        }
+
+        if (key instanceof ParameterizedType) {
+            Type actual = ((ParameterizedType) key).getActualTypeArguments()[0];
+            processKey((Class<?>) actual);
+
+        }
 
         if (value instanceof Class) {
 
@@ -65,5 +74,16 @@ public class MemberToJson {
         }
 
         Builder.append(",\"...\"]");
+    }
+
+    private static void processKey(Class<?> key) {
+
+        if (Helper.isNotJDKClass(key)){
+            Builder.wrapKey(key.getSimpleName());
+
+        } else {
+            Builder.wrapKey(Helper.getShortType(key));
+
+        }
     }
 }

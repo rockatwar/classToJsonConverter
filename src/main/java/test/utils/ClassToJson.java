@@ -1,15 +1,23 @@
 package test.utils;
 
+import test.exeption.MultipleRecurrence;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 public class ClassToJson {
+    private static final List<String> parsedClasses = new ArrayList<>();
     public static String convert(String classname) {
 
         try {
         Class<?> clazz = Class.forName(classname);
         Class<?>[] classes = clazz.getDeclaredClasses();
+
+        if (parsedClasses.indexOf(classname) != parsedClasses.lastIndexOf(classname)) {
+            Builder.wrapValue(clazz.getSimpleName());
+            throw new MultipleRecurrence("Multiple recurrence detected at " + classname);
+        }
+
+        parsedClasses.add(classname);
 
         Builder.append("{");
 
@@ -44,19 +52,20 @@ public class ClassToJson {
                 Builder.append(",");
             }
 
-            Builder.deleteComma();
+            Builder.deleteLastChar();
 
             if (classes.length != 0) {                                   // internal class processing
                 Builder.append(",");
                 getInnerClass(classes);
             }
 
+        Builder.append("}");
+
         } catch (ClassNotFoundException e) {
             return "Class " + e.getMessage() + " not found";
-        } catch (NoSuchFieldException e) {
-            e.getStackTrace();
+        } catch (NoSuchFieldException | MultipleRecurrence e) {
+            e.printStackTrace();
         }
-        Builder.append("}");
 
         return Builder.STRING_BUILDER.toString();
     }
@@ -71,6 +80,6 @@ public class ClassToJson {
             Builder.append(",");
         }
 
-        Builder.deleteComma();
+        Builder.deleteLastChar();
     }
 }

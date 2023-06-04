@@ -33,7 +33,7 @@ public class Builder {
         STRING_BUILDER.append("\"").append(value).append("\"");
     }
 
-    public static void deleteComma() {
+    public static void deleteLastChar() {
 
         STRING_BUILDER.deleteCharAt(STRING_BUILDER.length() - 1);
 
