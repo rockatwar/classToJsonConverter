@@ -5,19 +5,19 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class ClassToJson {
-    private static final List<String> parsedClasses = new ArrayList<>();
+    private static final List<String> PARSED_CLASSES = new ArrayList<>();
     public static String convert(String classname) {
 
         try {
         Class<?> clazz = Class.forName(classname);
         Class<?>[] classes = clazz.getDeclaredClasses();
 
-        if (parsedClasses.indexOf(classname) != parsedClasses.lastIndexOf(classname)) {
+        if (PARSED_CLASSES.indexOf(classname) != PARSED_CLASSES.lastIndexOf(classname)) {
             Builder.wrapValue(clazz.getSimpleName());
             throw new MultipleRecurrence("Multiple recurrence detected at " + classname);
         }
 
-        parsedClasses.add(classname);
+        PARSED_CLASSES.add(classname);
 
         Builder.append("{");
 
